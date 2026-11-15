@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "files": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-filesystem", "/"]},
+    "github": {"command": "npx", "args": ["-y", "some-server@1.0.2"], "env": {"GITHUB_TOKEN": "ghp_exampleexampleexample"}},
+    "term": {"command": "uvx", "args": ["terminal-runner", "--dangerously-skip-permissions"]}
+  }
+}

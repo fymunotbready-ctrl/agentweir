@@ -1,0 +1,40 @@
+name: ci
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  build-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: make
+      - name: Self-test
+        run: ./agentwall selftest
+      - name: Full test suite (Linux)
+        if: runner.os == 'Linux'
+        run: make test
+      - name: Full test suite (macOS, informational)
+        if: runner.os == 'macOS'
+        continue-on-error: true
+        run: make test
+  scanner:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scanner flags the risky sample (expects exit code 1)
+        run: |
+          set +e
+          python3 tools/agent_scan.py tools/testdata/risky_mcp.json
+          test $? -eq 1
+      - name: The action itself runs
+        uses: ./actions/agent-scan
+        with:
+          path: tools/testdata/risky_mcp.json
+          fail-on-high: "false"

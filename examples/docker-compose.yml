@@ -1,0 +1,41 @@
+# Enforcement pattern for containers.
+# The agent sits on a network with NO route to the internet, so the only way out
+# is through agentwall. Unlike the environment-variable mode, the agent cannot
+# bypass it by ignoring proxy settings.
+#
+# Try it:   docker compose up --build --abort-on-container-exit
+# See why:  docker compose logs proxy        (look for "BLOCKED")
+# Report:   docker compose exec proxy agentwall report /logs/audit.jsonl
+#
+# Replace the "agent" service with your own agent's image.
+services:
+  proxy:
+    build: ..
+    volumes:
+      - ./policy.conf:/etc/agentwall/policy.conf:ro
+      - logs:/logs
+    networks: [internal, external]
+
+  agent:
+    image: curlimages/curl:latest   # pin a version or digest in real use
+    environment:
+      HTTP_PROXY: http://proxy:8899
+      HTTPS_PROXY: http://proxy:8899
+      http_proxy: http://proxy:8899
+      https_proxy: http://proxy:8899
+    command:
+      - sh
+      - -c
+      - |
+        echo "pypi.org (allowed):"; curl -sS -o /dev/null -w "%{http_code}\n" https://pypi.org || true
+        echo "example.com (blocked):"; curl -sS -o /dev/null -w "%{http_code}\n" https://example.com || true
+    networks: [internal]
+    depends_on: [proxy]
+
+networks:
+  internal:
+    internal: true    # no route to the outside world
+  external: {}
+
+volumes:
+  logs: {}

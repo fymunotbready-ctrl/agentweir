@@ -1,0 +1,33 @@
+name: "agentwall scan"
+description: "Read-only scan of AI agent and MCP config files for risky settings."
+inputs:
+  path:
+    description: "File or folder to scan"
+    default: "."
+  fail-on-high:
+    description: "Fail the job when a high-severity finding is present (true or false)"
+    default: "true"
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      env:
+        SCAN_PATH: ${{ inputs.path }}
+        FAIL_ON_HIGH: ${{ inputs.fail-on-high }}
+        SCANNER: ${{ github.action_path }}/../../tools/agent_scan.py
+      run: |
+        set +e
+        out="$RUNNER_TEMP/agentscan-output.txt"
+        python3 "$SCANNER" "$SCAN_PATH" | tee "$out"
+        code=${PIPESTATUS[0]}
+        {
+          echo '### agentwall scan'
+          echo '```'
+          cat "$out"
+          echo '```'
+        } >> "$GITHUB_STEP_SUMMARY"
+        if [ "$FAIL_ON_HIGH" = "true" ] && [ "$code" -ne 0 ]; then
+          echo "High-severity findings detected."
+          exit "$code"
+        fi
+        exit 0

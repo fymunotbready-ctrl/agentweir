@@ -1,5 +1,7 @@
 # agentwall (working name)
 
+![ci](https://github.com/YOURUSERNAME/agentwall/actions/workflows/ci.yml/badge.svg)
+
 > **Status: early prototype (v0.2). Not security-reviewed. Do not rely on it to protect anything valuable yet.** Bug reports and honest feedback are very welcome: open an issue.
 
 Records which servers a program connects to, helps you turn that record into an allowlist, and blocks everything else. Built for AI agents and coding assistants; works with any program that respects proxy settings.
@@ -50,6 +52,35 @@ sed 's/^mode = .*/mode = monitor/' policy.example.conf > monitor.conf
 ```
 `report` shows `pypi.org:443` as allowed and `example.com:443` as would-block, because only pypi.org is in the example policy. Use your own agent or script in place of the `sh -c ...` part: everything after `--` is the command to run. When the draft policy looks right, run it in enforce mode with `--policy mypolicy.conf`.
 
+## Other ways to run it
+
+### Docker
+```
+docker build -t agentwall .
+docker run --rm agentwall version
+```
+By default the image runs as a proxy. Publish the port on localhost only: `docker run --rm -p 127.0.0.1:8899:8899 agentwall`. The image is built from this source, runs as a non-root user, and is untested on the maintainer's side so far: please report problems.
+
+**Container enforcement (stronger than the environment-variable mode).** `examples/docker-compose.yml` puts your agent on a network with no route to the internet; its only way out is through agentwall, so it cannot bypass the proxy by ignoring proxy settings:
+```
+cd examples
+docker compose up --build --abort-on-container-exit
+docker compose logs proxy      # look for BLOCKED
+```
+
+### GitHub Action: scan agent and MCP configs on every pull request
+```yaml
+- uses: actions/checkout@v4
+- uses: YOURUSERNAME/agentwall/actions/agent-scan@v0.2.0   # pin a release tag
+  with:
+    path: .
+    fail-on-high: true
+```
+The scan is read-only, uses only the Python standard library, and writes a summary to the job page.
+
+### Homebrew
+A formula template is in `packaging/homebrew/`. It is not published yet.
+
 ## Commands
 
 | Command | What it does |
@@ -79,7 +110,7 @@ Policy files are a few `key = value` lines (see `policy.example.conf`). Everythi
 - Not reviewed by an independent security expert.
 
 ## Tested so far
-58 end-to-end tests (blocking, bypass attempts, malformed input, tampering, restart, monitor mode, run mode) under AddressSanitizer and UBSan, plus a 300-connection stress test under AddressSanitizer and ThreadSanitizer, on Linux x86_64. Run them yourself on Linux with `make test` (needs `python3`). macOS and Windows (WSL) have not been tested.
+58 end-to-end tests (blocking, bypass attempts, malformed input, tampering, restart, monitor mode, run mode) under AddressSanitizer and UBSan, plus a 300-connection stress test under AddressSanitizer and ThreadSanitizer, on Linux x86_64. Run them yourself on Linux with `make test` (needs `python3`). CI builds on Linux and macOS on every push; see the badge above. Windows (WSL) has not been tested.
 
 ## Also included
 `tools/agent_scan.py` is a read-only scanner that flags risky settings in AI agent and MCP config files (hardcoded secrets, whole-disk access, unpinned packages). It is a single standard-library Python file: `python3 tools/agent_scan.py`.

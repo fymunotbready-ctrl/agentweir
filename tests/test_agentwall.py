@@ -222,6 +222,8 @@ open(LOG, "w").write("\n".join(tam) + "\n")
 res = run("proxy", "--policy", POL, "--log", LOG, "--listen", "127.0.0.1:0")
 check("refuses to start on a tampered log", res.returncode == 2 and "failed verification" in res.stderr, res.stderr)
 
+check("version command works", "agentwall 0." in run("version").stdout)
+
 # policy checks (no network needed)
 PW = write_policy("wild.conf", "allow = *.good.test\nallow = exact.test\nallow_ports = 443\n")
 cases = [("a.good.test:443", True), ("good.test:443", False), ("evilgood.test:443", False),

@@ -5,6 +5,13 @@ ifeq ($(shell uname),Linux)
 LDFLAGS += -pie -Wl,-z,relro,-z,now
 endif
 
+# make STATIC=1 links the C++ runtime statically (used for the Docker image and release builds, Linux only).
+ifeq ($(shell uname),Linux)
+ifdef STATIC
+LDFLAGS += -static-libstdc++ -static-libgcc
+endif
+endif
+
 agentwall: src/main.cpp src/*.hpp
 	$(CXX) $(CXXFLAGS) src/main.cpp -o agentwall $(LDFLAGS)
 

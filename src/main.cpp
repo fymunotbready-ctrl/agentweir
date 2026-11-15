@@ -31,6 +31,8 @@
 
 using namespace aw;
 
+static const char* const kVersion = "0.2.0";
+
 static volatile sig_atomic_t g_stop = 0;
 static volatile sig_atomic_t g_child = 0;
 
@@ -335,7 +337,8 @@ static int usage() {
                "  agentwall verify LOGFILE\n"
                "  agentwall report LOGFILE            what the program connected to\n"
                "  agentwall suggest LOGFILE           draft a policy from what was observed\n"
-               "  agentwall selftest\n";
+               "  agentwall selftest\n"
+               "  agentwall version\n";
   return 2;
 }
 
@@ -574,6 +577,10 @@ int main(int argc, char** argv) {
   Opts o;
   std::string err;
   try {
+    if (cmd == "version" || cmd == "--version") {
+      std::cout << "agentwall " << kVersion << "\n";
+      return 0;
+    }
     if (cmd == "selftest") return cmd_selftest();
     if (cmd == "verify") return argc == 3 ? cmd_verify(argv[2]) : usage();
     if (cmd == "report") return argc == 3 ? cmd_report(argv[2]) : usage();
