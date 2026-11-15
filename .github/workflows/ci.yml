@@ -16,7 +16,7 @@ jobs:
       - name: Build
         run: make
       - name: Self-test
-        run: ./agentweil selftest
+        run: ./agentweir selftest
       - name: Full test suite (Linux)
         if: runner.os == 'Linux'
         run: make test

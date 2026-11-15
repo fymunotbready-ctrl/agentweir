@@ -6,17 +6,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends g++ make \
 WORKDIR /src
 COPY Makefile ./
 COPY src ./src
-RUN make STATIC=1 && ./agentweil selftest
+RUN make STATIC=1 && ./agentweir selftest
 
 # Stage 2: small runtime image. Runs as a non-root user.
 FROM debian:12-slim
-RUN useradd --system --uid 10001 --no-create-home agentweil \
-    && mkdir -p /logs /etc/agentweil \
-    && chown agentweil /logs
-COPY --from=build /src/agentweil /usr/local/bin/agentweil
-COPY policy.example.conf /etc/agentweil/policy.conf
-USER agentweil
+RUN useradd --system --uid 10001 --no-create-home agentweir \
+    && mkdir -p /logs /etc/agentweir \
+    && chown agentweir /logs
+COPY --from=build /src/agentweir /usr/local/bin/agentweir
+COPY policy.example.conf /etc/agentweir/policy.conf
+USER agentweir
 WORKDIR /logs
-ENTRYPOINT ["agentweil"]
+ENTRYPOINT ["agentweir"]
 # Default: run as a proxy. Publish the port on localhost only (see README).
-CMD ["proxy", "--policy", "/etc/agentweil/policy.conf", "--log", "/logs/audit.jsonl", "--listen", "0.0.0.0:8899"]
+CMD ["proxy", "--policy", "/etc/agentweir/policy.conf", "--log", "/logs/audit.jsonl", "--listen", "0.0.0.0:8899"]

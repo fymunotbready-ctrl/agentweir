@@ -1,10 +1,10 @@
-// agentweil - egress firewall + audit log for AI agents (Layer 1 + 3 prototype).
+// agentweir - egress firewall + audit log for AI agents (Layer 1 + 3 prototype).
 //
-//   agentweil run    --policy FILE [--log FILE] -- COMMAND [ARGS...]
-//   agentweil proxy  --policy FILE [--log FILE] [--listen HOST:PORT]
-//   agentweil check  --policy FILE HOST:PORT [METHOD]
-//   agentweil verify LOGFILE
-//   agentweil selftest
+//   agentweir run    --policy FILE [--log FILE] -- COMMAND [ARGS...]
+//   agentweir proxy  --policy FILE [--log FILE] [--listen HOST:PORT]
+//   agentweir check  --policy FILE HOST:PORT [METHOD]
+//   agentweir verify LOGFILE
+//   agentweir selftest
 //
 // HONEST LIMITATION: this works by pointing the agent at a local proxy through
 // environment variables. A program that ignores proxy settings, or opens raw
@@ -121,7 +121,7 @@ static bool violates_policy(const Policy& pol, const std::string& host, int port
 }
 
 static void reply(int fd, int code, const char* text, const std::string& msg) {
-  const std::string body = "agentweil: " + msg + "\n";
+  const std::string body = "agentweir: " + msg + "\n";
   send_all(fd, "HTTP/1.1 " + std::to_string(code) + " " + text +
                    "\r\nContent-Type: text/plain\r\nContent-Length: " + std::to_string(body.size()) +
                    "\r\nConnection: close\r\n\r\n" + body);
@@ -150,7 +150,7 @@ static void handle(Server& S, Fd client, uint64_t id) {
       const std::string who = host.empty() ? "(malformed request)" : host + ":" + std::to_string(port);
       const char* label = std::strcmp(decision, "deny") == 0 ? "BLOCKED"
                           : std::strcmp(decision, "error") == 0 ? "ERROR" : "WOULD BLOCK";
-      const std::string msg = std::string("agentweil: ") + label + " " + who + " - " +
+      const std::string msg = std::string("agentweir: ") + label + " " + who + " - " +
                               json_escape(reason, 120) + "\n";
       std::fputs(msg.c_str(), stderr);
     }
@@ -297,7 +297,7 @@ static void accept_loop(Server& S, int lfd, std::atomic<bool>& stop) {
 }
 
 struct Opts {
-  std::string policy, log = "agentweil-audit.jsonl", listen = "127.0.0.1:8899";
+  std::string policy, log = "agentweir-audit.jsonl", listen = "127.0.0.1:8899";
   std::vector<std::string> rest;
 };
 
@@ -330,15 +330,15 @@ static bool parse_opts(int argc, char** argv, int start, bool cmd_mode, Opts& o,
 }
 
 static int usage() {
-  std::cerr << "agentweil - egress firewall and audit log for AI agents\n\n"
-               "  agentweil run    --policy FILE [--log FILE] -- COMMAND [ARGS...]\n"
-               "  agentweil proxy  --policy FILE [--log FILE] [--listen 127.0.0.1:8899]\n"
-               "  agentweil check  --policy FILE HOST:PORT [METHOD]\n"
-               "  agentweil verify LOGFILE\n"
-               "  agentweil report LOGFILE            what the program connected to\n"
-               "  agentweil suggest LOGFILE           draft a policy from what was observed\n"
-               "  agentweil selftest\n"
-               "  agentweil version\n";
+  std::cerr << "agentweir - egress firewall and audit log for AI agents\n\n"
+               "  agentweir run    --policy FILE [--log FILE] -- COMMAND [ARGS...]\n"
+               "  agentweir proxy  --policy FILE [--log FILE] [--listen 127.0.0.1:8899]\n"
+               "  agentweir check  --policy FILE HOST:PORT [METHOD]\n"
+               "  agentweir verify LOGFILE\n"
+               "  agentweir report LOGFILE            what the program connected to\n"
+               "  agentweir suggest LOGFILE           draft a policy from what was observed\n"
+               "  agentweir selftest\n"
+               "  agentweir version\n";
   return 2;
 }
 
@@ -445,7 +445,7 @@ static int cmd_suggest(const std::string& path) {
       ports.insert(field_num(l, "port"));
     }
   }
-  std::printf("# Drafted by 'agentweil suggest' from %s\n", path.c_str());
+  std::printf("# Drafted by 'agentweir suggest' from %s\n", path.c_str());
   std::printf("# REVIEW EVERY LINE. This lists what the program DID, not what is safe.\n");
   std::printf("# If the run was compromised, the bad destinations are listed here too.\n");
   std::printf("# Ports below apply to all hosts; tighten by hand if needed.\n");
@@ -484,7 +484,7 @@ static int cmd_serve(const Opts& o, bool run_mode) {
     return 2;
   }
   if (run_mode && o.rest.empty()) {
-    std::cerr << "error: put the command to run after --, e.g.  agentweil run --policy p.conf -- python3 agent.py\n";
+    std::cerr << "error: put the command to run after --, e.g.  agentweir run --policy p.conf -- python3 agent.py\n";
     return 2;
   }
   Server S;
@@ -526,7 +526,7 @@ static int cmd_serve(const Opts& o, bool run_mode) {
   sigaction(SIGTERM, &sa, nullptr);
   signal(SIGPIPE, SIG_IGN);
 
-  std::cerr << "agentweil: mode=" << (S.policy.enforce ? "enforce" : "monitor") << " log=" << o.log << "\n";
+  std::cerr << "agentweir: mode=" << (S.policy.enforce ? "enforce" : "monitor") << " log=" << o.log << "\n";
   std::atomic<bool> stop{false};
 
   int exit_code = 0;
@@ -539,8 +539,8 @@ static int cmd_serve(const Opts& o, bool run_mode) {
       setenv(k, proxy.c_str(), 1);
     setenv("NO_PROXY", "", 1);
     setenv("no_proxy", "", 1);
-    std::cerr << "agentweil: proxy " << proxy << "\n"
-              << "agentweil: NOTE programs that ignore proxy settings are not restricted by this mode.\n";
+    std::cerr << "agentweir: proxy " << proxy << "\n"
+              << "agentweir: NOTE programs that ignore proxy settings are not restricted by this mode.\n";
     std::vector<char*> args;
     for (const auto& s : o.rest) args.push_back(const_cast<char*>(s.c_str()));
     args.push_back(nullptr);
@@ -549,7 +549,7 @@ static int cmd_serve(const Opts& o, bool run_mode) {
     if (pid == 0) {
       signal(SIGPIPE, SIG_DFL);
       execvp(args[0], args.data());
-      const char m[] = "agentweil: cannot run command\n";
+      const char m[] = "agentweir: cannot run command\n";
       if (write(2, m, sizeof m - 1) < 0) {}
       _exit(127);
     }
@@ -578,7 +578,7 @@ int main(int argc, char** argv) {
   std::string err;
   try {
     if (cmd == "version" || cmd == "--version") {
-      std::cout << "agentweil " << kVersion << "\n";
+      std::cout << "agentweir " << kVersion << "\n";
       return 0;
     }
     if (cmd == "selftest") return cmd_selftest();

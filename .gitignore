@@ -1,5 +1,5 @@
-agentweil
-agentweil-asan
-agentweil-tsan
+agentweir
+agentweir-asan
+agentweir-tsan
 *.jsonl
 __pycache__/

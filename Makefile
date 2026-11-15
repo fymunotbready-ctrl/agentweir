@@ -12,16 +12,16 @@ LDFLAGS += -static-libstdc++ -static-libgcc
 endif
 endif
 
-agentweil: src/main.cpp src/*.hpp
-	$(CXX) $(CXXFLAGS) src/main.cpp -o agentweil $(LDFLAGS)
+agentweir: src/main.cpp src/*.hpp
+	$(CXX) $(CXXFLAGS) src/main.cpp -o agentweir $(LDFLAGS)
 
 # Build with memory-error and undefined-behaviour detectors (used by the tests).
 asan: src/main.cpp src/*.hpp
 	$(CXX) -std=c++17 -O1 -g -Wall -Wextra -fsanitize=address,undefined -fno-omit-frame-pointer \
-	  src/main.cpp -o agentweil-asan -pthread
+	  src/main.cpp -o agentweir-asan -pthread
 
 test: asan
-	ASAN_OPTIONS=detect_leaks=0 python3 tests/test_agentweil.py ./agentweil-asan
+	ASAN_OPTIONS=detect_leaks=0 python3 tests/test_agentweir.py ./agentweir-asan
 
 clean:
-	rm -f agentweil agentweil-asan
+	rm -f agentweir agentweir-asan

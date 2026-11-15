@@ -1,18 +1,18 @@
 # Enforcement pattern for containers.
 # The agent sits on a network with NO route to the internet, so the only way out
-# is through agentweil. Unlike the environment-variable mode, the agent cannot
+# is through agentweir. Unlike the environment-variable mode, the agent cannot
 # bypass it by ignoring proxy settings.
 #
 # Try it:   docker compose up --build --abort-on-container-exit
 # See why:  docker compose logs proxy        (look for "BLOCKED")
-# Report:   docker compose exec proxy agentweil report /logs/audit.jsonl
+# Report:   docker compose exec proxy agentweir report /logs/audit.jsonl
 #
 # Replace the "agent" service with your own agent's image.
 services:
   proxy:
     build: ..
     volumes:
-      - ./policy.conf:/etc/agentweil/policy.conf:ro
+      - ./policy.conf:/etc/agentweir/policy.conf:ro
       - logs:/logs
     networks: [internal, external]
 

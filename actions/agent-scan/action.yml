@@ -1,4 +1,4 @@
-name: "agentweil scan"
+name: "agentweir scan"
 description: "Read-only scan of AI agent and MCP config files for risky settings."
 inputs:
   path:
@@ -21,7 +21,7 @@ runs:
         python3 "$SCANNER" "$SCAN_PATH" | tee "$out"
         code=${PIPESTATUS[0]}
         {
-          echo '### agentweil scan'
+          echo '### agentweir scan'
           echo '```'
           cat "$out"
           echo '```'
