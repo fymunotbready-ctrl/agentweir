@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""End-to-end tests for agentwall. Needs only Python 3 (standard library).
-Usage: python3 tests/test_agentwall.py ./agentwall-asan
+"""End-to-end tests for agentweil. Needs only Python 3 (standard library).
+Usage: python3 tests/test_agentweil.py ./agentweil-asan
 Starts local target servers, runs the proxy against them, and checks behaviour,
 the audit-log chain (re-verified independently with hashlib), and tampering."""
 import hashlib, json, os, signal, socket, subprocess, sys, tempfile, threading, time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-BIN = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else "./agentwall")
+BIN = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else "./agentweil")
 TMP = tempfile.mkdtemp(prefix="aw-test-")
 passed = failed = 0
 
@@ -222,7 +222,7 @@ open(LOG, "w").write("\n".join(tam) + "\n")
 res = run("proxy", "--policy", POL, "--log", LOG, "--listen", "127.0.0.1:0")
 check("refuses to start on a tampered log", res.returncode == 2 and "failed verification" in res.stderr, res.stderr)
 
-check("version command works", "agentwall 0." in run("version").stdout)
+check("version command works", "agentweil 0." in run("version").stdout)
 
 # policy checks (no network needed)
 PW = write_policy("wild.conf", "allow = *.good.test\nallow = exact.test\nallow_ports = 443\n")

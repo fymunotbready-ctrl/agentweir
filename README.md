@@ -1,6 +1,6 @@
-# agentwall (working name)
+# agentweil (working name)
 
-![ci](https://github.com/YOURUSERNAME/agentwall/actions/workflows/ci.yml/badge.svg)
+![ci](https://github.com/YOURUSERNAME/agentweil/actions/workflows/ci.yml/badge.svg)
 
 > **Status: early prototype (v0.2). Not security-reviewed. Do not rely on it to protect anything valuable yet.** Bug reports and honest feedback are very welcome: open an issue.
 
@@ -22,14 +22,14 @@ xcode-select --install
 This installs the compiler, `make` and `curl`. (macOS support is expected to work but has not been tested yet. If the build fails, please open an issue with the error.)
 
 **Windows**
-agentwall uses Unix networking and does not build natively on Windows. Use WSL2 (Windows 10/11): open PowerShell as administrator, run `wsl --install`, restart, open the Ubuntu app, then follow the Linux steps above inside it. (Not tested on WSL yet; please report problems.)
+agentweil uses Unix networking and does not build natively on Windows. Use WSL2 (Windows 10/11): open PowerShell as administrator, run `wsl --install`, restart, open the Ubuntu app, then follow the Linux steps above inside it. (Not tested on WSL yet; please report problems.)
 
 **Then, on all three:**
 ```
-git clone https://github.com/YOURUSERNAME/agentwall
-cd agentwall
+git clone https://github.com/YOURUSERNAME/agentweil
+cd agentweil
 make
-./agentwall selftest        # should print 4 PASS lines
+./agentweil selftest        # should print 4 PASS lines
 ```
 
 ## Try it
@@ -37,18 +37,18 @@ make
 ### 1. See a connection get blocked
 The example policy allows only a few package hosts, so a request to `example.com` is blocked:
 ```
-./agentwall run --policy policy.example.conf --log demo.jsonl -- curl -sS http://example.com
+./agentweil run --policy policy.example.conf --log demo.jsonl -- curl -sS http://example.com
 ```
-You should see `agentwall: BLOCKED example.com:80 - host not in allowlist`, and curl will print the same refusal.
+You should see `agentweil: BLOCKED example.com:80 - host not in allowlist`, and curl will print the same refusal.
 
 ### 2. Watch what a program touches, then draft a policy
 Monitor mode logs everything and blocks nothing:
 ```
 sed 's/^mode = .*/mode = monitor/' policy.example.conf > monitor.conf
-./agentwall run --policy monitor.conf --log watch.jsonl -- sh -c "curl -s -o /dev/null https://pypi.org; curl -s -o /dev/null https://example.com"
-./agentwall report watch.jsonl                    # table of hosts it contacted
-./agentwall suggest watch.jsonl > mypolicy.conf   # draft allowlist; REVIEW every line
-./agentwall verify watch.jsonl                    # confirm the log was not edited
+./agentweil run --policy monitor.conf --log watch.jsonl -- sh -c "curl -s -o /dev/null https://pypi.org; curl -s -o /dev/null https://example.com"
+./agentweil report watch.jsonl                    # table of hosts it contacted
+./agentweil suggest watch.jsonl > mypolicy.conf   # draft allowlist; REVIEW every line
+./agentweil verify watch.jsonl                    # confirm the log was not edited
 ```
 `report` shows `pypi.org:443` as allowed and `example.com:443` as would-block, because only pypi.org is in the example policy. Use your own agent or script in place of the `sh -c ...` part: everything after `--` is the command to run. When the draft policy looks right, run it in enforce mode with `--policy mypolicy.conf`.
 
@@ -56,12 +56,12 @@ sed 's/^mode = .*/mode = monitor/' policy.example.conf > monitor.conf
 
 ### Docker
 ```
-docker build -t agentwall .
-docker run --rm agentwall version
+docker build -t agentweil .
+docker run --rm agentweil version
 ```
-By default the image runs as a proxy. Publish the port on localhost only: `docker run --rm -p 127.0.0.1:8899:8899 agentwall`. The image is built from this source, runs as a non-root user, and is untested on the maintainer's side so far: please report problems.
+By default the image runs as a proxy. Publish the port on localhost only: `docker run --rm -p 127.0.0.1:8899:8899 agentweil`. The image is built from this source, runs as a non-root user, and is untested on the maintainer's side so far: please report problems.
 
-**Container enforcement (stronger than the environment-variable mode).** `examples/docker-compose.yml` puts your agent on a network with no route to the internet; its only way out is through agentwall, so it cannot bypass the proxy by ignoring proxy settings:
+**Container enforcement (stronger than the environment-variable mode).** `examples/docker-compose.yml` puts your agent on a network with no route to the internet; its only way out is through agentweil, so it cannot bypass the proxy by ignoring proxy settings:
 ```
 cd examples
 docker compose up --build --abort-on-container-exit
@@ -71,7 +71,7 @@ docker compose logs proxy      # look for BLOCKED
 ### GitHub Action: scan agent and MCP configs on every pull request
 ```yaml
 - uses: actions/checkout@v4
-- uses: YOURUSERNAME/agentwall/actions/agent-scan@v0.2.0   # pin a release tag
+- uses: YOURUSERNAME/agentweil/actions/agent-scan@v0.2.0   # pin a release tag
   with:
     path: .
     fail-on-high: true
@@ -85,14 +85,14 @@ A formula template is in `packaging/homebrew/`. It is not published yet.
 
 | Command | What it does |
 |---|---|
-| `run --policy FILE [--log FILE] -- CMD...` | Runs CMD with its web traffic going through agentwall |
+| `run --policy FILE [--log FILE] -- CMD...` | Runs CMD with its web traffic going through agentweil |
 | `report LOGFILE` | Hosts contacted: allowed, blocked, would-block |
 | `suggest LOGFILE` | Drafts a policy from what was observed |
 | `check --policy FILE HOST:PORT` | Explains whether a destination would be allowed (no network used) |
 | `verify LOGFILE` | Checks the hash chain; detects edited, deleted or reordered records |
 | `proxy --policy FILE` | Runs just the proxy, so you can point tools at it yourself |
 
-Policy files are a few `key = value` lines (see `policy.example.conf`). Everything not listed is denied. Blocked connections print a visible `agentwall: BLOCKED host:port - reason` line, because many tools only show a confusing error.
+Policy files are a few `key = value` lines (see `policy.example.conf`). Everything not listed is denied. Blocked connections print a visible `agentweil: BLOCKED host:port - reason` line, because many tools only show a confusing error.
 
 ## What it does
 - Default-deny allowlist by hostname (exact or `*.suffix`) and port.

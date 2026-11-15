@@ -4,6 +4,6 @@ tests
 examples
 packaging
 *.jsonl
-agentwall
-agentwall-asan
-agentwall-tsan
+agentweil
+agentweil-asan
+agentweil-tsan

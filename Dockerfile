@@ -6,17 +6,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends g++ make \
 WORKDIR /src
 COPY Makefile ./
 COPY src ./src
-RUN make STATIC=1 && ./agentwall selftest
+RUN make STATIC=1 && ./agentweil selftest
 
 # Stage 2: small runtime image. Runs as a non-root user.
 FROM debian:12-slim
-RUN useradd --system --uid 10001 --no-create-home agentwall \
-    && mkdir -p /logs /etc/agentwall \
-    && chown agentwall /logs
-COPY --from=build /src/agentwall /usr/local/bin/agentwall
-COPY policy.example.conf /etc/agentwall/policy.conf
-USER agentwall
+RUN useradd --system --uid 10001 --no-create-home agentweil \
+    && mkdir -p /logs /etc/agentweil \
+    && chown agentweil /logs
+COPY --from=build /src/agentweil /usr/local/bin/agentweil
+COPY policy.example.conf /etc/agentweil/policy.conf
+USER agentweil
 WORKDIR /logs
-ENTRYPOINT ["agentwall"]
+ENTRYPOINT ["agentweil"]
 # Default: run as a proxy. Publish the port on localhost only (see README).
-CMD ["proxy", "--policy", "/etc/agentwall/policy.conf", "--log", "/logs/audit.jsonl", "--listen", "0.0.0.0:8899"]
+CMD ["proxy", "--policy", "/etc/agentweil/policy.conf", "--log", "/logs/audit.jsonl", "--listen", "0.0.0.0:8899"]
